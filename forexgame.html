@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced trading game</title>
+    <style>
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding:10px ;
+            background-color: #1a1a1a;
+            color: #fff;
+            overflow-x: hidden;
+
+
+        }
+        .container {
+            width: 100%;
+            margin: 0 auto;
+
+        }
+        #chart {
+            width: 100%;
+            height: 300px;
+            background: #252525;
+            border: 1px solid #333;
+            position: relative;
+            overflow: auto;
+        }
+        .candle {
+            position: absolute;
+            width: 6px;
+        }
+        .wick {
+            width: 1px;
+            background:#fff;
+            position:absolute;
+            left:2.5px;
+        }
+        .green {
+            background:#00cc00;
+        }
+        .red {
+            background: #ff0000;
+        }
+        .controls {
+            display:flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+        button {
+            padding: 8px 16px;
+            background: #333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            touch-action: manipulation;
+            font-size: 14px;
+        }
+        button:hover, button:active {
+            background: #555;
+        }
+        button:disabled {
+            background:#222;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 8px;
+            border-radius: 5px;
+            width: 60px;
+        }
+        .status {
+            background: #252525;
+            padding: 10px;
+            border-radius: 5px;
+            display: grid;
+            grid-template-columns:1fr ;
+            gap: 5px;
+            font-size: 14px;
+        }
+    .status span {
+        color: #00cc00;
+    }
+    .price-label {
+        position: absolute;
+        right: 2px;
+        background: rgb(0, 0, 0.7);
+        padding: 2px 4px;
+        font-size: 10px;
+    }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="font-size:20px; text-align:center;">Trading Game</h1>
+        <div id="chart"></div>
+        <div class="controls">
+            <button id="buyBtn" ontouchstart="buy()" onclick="buy()">buy</button>
+            <button id="sellBtn" ontouchstart="sell()" onclick="sell()">sell</button>
+            <button id="closeBtn" ontouchstart="closePosition()" onclick="closePosition()">close</button>
+            <input type="number" id="amount" min="1" step="1" value="10" >
+        </div>
+        <div class="status">
+            <div>Balance: $<span id="balance">1000</span></div>
+            <div>Position: <span id="position">None</span></div>
+            <div>Current price: <span id="price">10</span></div>
+            <div>Profit/Loss: <span id="profit">0</span></div>
+
+        </div>
+
+    </div>
+    <script>
+        const chart = document.getElementById('chart');
+        let balance = 1000;
+        let position = null;
+        let currentPrice = 10;
+        let candles = [];
+        const maxCandles = 50;
+        const candleHeight = 15;
+        const chartHeight = 300;
+
+        function generateCandle() {
+            const isGreen = Math.random() > 0.5;
+            const prevCandle = candles[candles.length - 1];
+
+            const prevBottom = prevcandle ? prevCandle.bottom : chartHeight/2;
+
+            const candle = {
+                value: isGreen,
+                price: currentPrice,
+                bottom: isGreen ? prevBottom + candleHeight : prevBottom - candleHeight
+            };
+
+            currentPrice += isGreen ? 1 : -1;
+            candles.push(candle);
+            if (candles.length > maxCandles) {
+                candles.shift();
+            }
+            renderChart();
+            updatePosition();
+            document.getElementById('price').textContent = CurrentPrice;
+
+            chart.scrollLeft = chart.scrollWidth;
+            const latestBottom = candles[candles.length - 1].bottom;
+            if (latestBottom > chartHeight - candleHeight) {
+                chart.scrollTop = latestBottom - chartHeight + candleHeight;
+            }
+            else if (latestBottom < 0) {
+                chart.scrollTop = 0;
+
+            }
+
+        }
+
+        function renderChart() {
+            chart.innerHTML = '';
+            candles.forEach((candle, index) =>{
+                const div = document.createElement('div')
+                div.className = 'candle ${candle.value ? 'green' : 'red'}';
+                div.style.left = '${index * 8}px';
+                div.style.bottom = '${candle.bottom}px';
+                div.style.height = '${candleHeight}px';
+
+                const wick = document.createElement('div');
+                wick.className = 'wick';
+                wick.style.height = '${candleHeight}px';
+                wick.style.bottom = '${candle.value ? -candleHeight : candleHeight}px';
+
+                div.appendChild(wick);
+
+                if (index === candles.length -1) {
+                    const priceLabel.className = 'price-label';
+                    priceLabel.textContent = candle.price;
+                    priceLabel.style.bottom = '${candle.bottom}px';
+                    div.appendChild(priceLabel);
+                }
+                chart.appendChild(div);
+            } );
+
+        } 
+
+        function buy() {
+            if (!position && balance > 0) {
+                const amount = parseInt (document.getElementById ('amount').value) || 0;
+            console.log('buy attemt: Amount=${amount} Balance=${balance}');
+
+            if (amount > 0) {
+                position = {
+                    type: 'buy',
+                    price: currentPrice,
+                    amount:amount,
+                    maxLoss: -balance
+
+                };
+                console.log('buy opened position:' position);
+                updateStatus();
+                updateButtons();
+                updatePosition();
+
+            }else {
+                console.log('Buy failed: Invalid amount')
+            }
+         }
+      } 
+      
+      function sell() {
+            if (!position && balance > 0) {
+                const amount = parseInt (document.getElementById ('amount').value) || 0;
+            console.log('sell attemt: Amount=${amount} Balance=${balance}');
+
+            if (amount > 0) {
+                position = {
+                    type: 'sell',
+                    price: currentPrice,
+                    amount:amount,
+                    maxLoss: -balance
+
+                };
+                console.log('sell opened position:' position);
+                updateStatus();
+                updateButtons();
+                updatePosition();
+
+            }else {
+                console.log('sell failed: Invalid amount')
+            }
+         }
+      } 
+
+      function closePosition() {
+        if (position) {
+            let profit = position.type === 'buy'
+            ? (currentPrice - position.price) * position.amount
+            :(position.price - currentPrice) * position.amount;
+
+            profit = Math.max(profit, position.maxLoss);
+            balance += profit;
+            position = null;
+
+            console.log('position closed: profit =${profit}, New Balance =${balance}');
+            document.getElementById('profit').textContent = profit.toFixed(2);
+            updateStatus();
+            updateButtons();
+        }
+      }
+
+      
+    </script>
+    
+</body>
+</html>
